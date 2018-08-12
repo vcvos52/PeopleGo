@@ -1,0 +1,187 @@
+<meta name="viewport" content="width=620" />
+<title>Geolocation</title>
+<link rel="stylesheet" href="style.css" type="text/css"/>
+<link rel="stylesheet" href="style.css" type="text/css">
+<style type="text/css">
+#googleMap { margin: 0 auto 0 auto; 
+left: 50%;
+}
+#map{
+    left: 50%;
+}
+</style>
+
+<script src='http://use.edgefonts.net/creepster.js'></script>
+
+<script src="https://www.gstatic.com/firebasejs/5.0.4/firebase.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-firestore.js"></script>
+
+    
+<script>
+    var config = {
+      apiKey: "AIzaSyBq2sm_qr7Td05bOrFsp6q3VCzZRAXEIdo",
+      authDomain: "html5practice-f99ad.firebaseapp.com",
+      databaseURL: "https://html5practice-f99ad.firebaseio.com",
+      projectId: "html5practice-f99ad",
+      storageBucket: "html5practice-f99ad.appspot.com",
+      messagingSenderId: "523059937050"
+    };
+    firebase.initializeApp(config);
+</script>
+
+<script type="text/javascript" src="https://maps.google.com/maps/api/js?key=AIzaSyBV-BJdPX48vd346TBA__ue2F47GXZFk90"></script>
+<main class='main'>
+    <article>
+      <p class='textW'>Finding your location: <span id="status">click dat button</span></p>
+      <button class='buttonCent' id="updateButton">Get Location</button>
+      <button class='buttonCent' onclick="clearDB()">Delete Data</button> <br />
+    </article>
+<p class='textW'>Your location is at: <span id="coords"> </span></p><br />
+</main>
+
+<script>
+
+var latlng;
+var initPos = true;
+var firestore = firebase.firestore();
+var marker;
+var radius = parseFloat(window.localStorage.getItem('radius'));
+
+function success(position) {
+  var s = document.querySelector('#status');
+  var coord = document.querySelector('#coords');
+  var user = window.localStorage.getItem('currentUser');
+  var status = window.localStorage.getItem('status');
+  console.log(user.toString());
+
+  if (s.className === 'success') {
+    s.className = 'done';
+    return;
+  }
+
+  s.innerHTML = "found you!";
+  if (!(s.className === 'done')){
+    s.className = 'success';
+  } else {
+        latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+        if (initPos){
+            var initLatLong = latlng;
+        }
+        initPos = false;
+        marker.setPosition(latlng); 
+        console.log(marker.toString());
+        coord.innerHTML = latlng;
+        
+        // ENTERS INTO THE DATABASE //
+        var userDocRef = firestore.collection("userLocation").doc(user.toString());
+        userDocRef.set({
+            loc : latlng.toString(),
+            status : status,
+            host : window.localStorage.getItem('host')
+        });
+        return;
+  }
+
+  var mapcanvas = document.createElement('div');
+  mapcanvas.id = 'mapcanvas';
+  mapcanvas.style.height = '400px';
+  mapcanvas.style.width = '560px';
+  mapcanvas.style.left = '30%';
+  
+  document.querySelector('article').appendChild(document.createElement('br'));
+
+  document.querySelector('article').appendChild(mapcanvas);
+
+  latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+  if (initPos){
+      var initLatLong = latlng;
+  }
+  initPos = false;
+  
+  // ENTERS INTO THE DATABASE //
+  var userDocRef = firestore.collection("userLocation").doc(user.toString());
+  userDocRef.set({
+      loc : latlng.toString(),
+      status : status,
+      host : window.localStorage.getItem('host')
+  });
+
+  coord.innerHTML = latlng;
+
+  var myOptions = {
+    zoom: 15,
+    center: latlng,
+    mapTypeControl: false,
+    navigationControlOptions: {style: google.maps.NavigationControlStyle.SMALL},
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  };
+  var map = new google.maps.Map(document.getElementById("mapcanvas"), myOptions);
+  
+  var initMarker = new google.maps.Marker({
+      position: initLatLong,
+      map: map
+      
+  });
+
+  marker = new google.maps.Marker({
+      position: latlng,
+      map: map,
+      title:"You are here! (at least within a "+position.coords.accuracy+" meter radius)"
+  });
+  var circle = new google.maps.Circle({
+      map: map,
+      radius: radius,
+      fillColor: '#AA0000'
+  });
+  circle.bindTo('center', initMarker, 'position');
+  initMarker.setVisible(false);
+}
+
+const updateButton = document.querySelector('#updateButton');
+
+function error(msg) {
+  var s = document.querySelector('#status');
+  s.innerHTML = typeof msg === 'string' ? msg : "failed";
+  s.className = 'fail';
+}
+
+
+if (!navigator.geolocation) {
+  error('not supported');
+}
+
+function clearDB(){
+    firestore.collection("userLocation").get().then(function(querySnapshot) {
+    querySnapshot.forEach(function(docu) {
+        firestore.collection("userLocation").doc(docu.id).delete();
+    });
+});
+}
+
+/**
+ * Uses google maps api to get the position, and updates the data base
+ * Ideally run every second to keep data base fresh
+ * @param position 
+ * @returns Void
+ */
+function updatePostionHelper(position){
+    newLatLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+    var coord = document.querySelector('#coords');
+    var user = window.localStorage.getItem('currentUser');
+    coord.innerHTML = newLatLng.toString();
+    firestore.collection("userLocation").doc(user.toString()).update({
+        loc : newLatLng.toString()
+    });
+    console.log("updated");
+}
+
+function updatePosition(){
+    navigator.geolocation.getCurrentPosition(success, error);
+}
+
+updateButton.addEventListener('click', e=> {
+    
+        var interval = setInterval(updatePosition, 1000);
+});
+
+</script>

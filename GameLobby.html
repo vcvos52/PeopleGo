@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>Game Lobby</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="style.css" type="text/css"/>
+        <link rel="stylesheet" href="style.css" type="text/css">
+
+        <script src='http://use.edgefonts.net/creepster.js'></script>
+    </head>
+    <body>
+                    
+        <header class="header">
+          <h1 class="header__title">Welcome to the Game Lobby!</h1>
+        </header>
+        <main class='main'>
+        <div class='card'>
+            <br />
+            <p class="text">How Large is your game play radius (in meters)? </p>
+            <input class='mdl-button' id="radius" placeholder="radius">
+            <br />
+            <br />
+            <p class="text">Ready to Play? </p>
+                <br />
+            <button class='buttonCent' id="letsPlay">Let's Play!</button>
+            <script>
+                var myStorage = window.localStorage;
+                const play = document.getElementById("letsPlay");
+                play.addEventListener("click", e => {
+                    var rad = document.getElementById("radius");
+                    var radFloat = parseFloat(rad.value);
+                    myStorage.setItem("radius", radFloat);
+                    setTimeout(function() { window.location.href = "Geo.html"; }, 0);
+                });
+            </script>
+        </div>
+        </main>
+    </body>
+</html>
