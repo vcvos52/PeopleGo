@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+
+<html>
+    
+    <head>
+        <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-firestore.js"></script>
+        <title>Login</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <link rel="stylesheet" href="style.css" type="text/css"/>
+        <link rel="stylesheet" href="style.css" type="text/css">
+
+        <script src='http://use.edgefonts.net/creepster.js'></script>
+
+
+    </head>
+    <body>
+        
+        <header class="header">
+          <h1 class="header__title">PeopleGo</h1>
+        </header>
+        
+        
+      <main class='main'>
+          <!--comment-->
+          <div class='card'>
+            <input class='mdl-button' id="username" placeholder="username">
+            <br></br>
+            <input class='mdl-button' id="password" placeholder="password">
+            <br></br>
+            <button class='button' id="SignIn"> Sign In </button>
+            
+            <button class='button' id="CreateAccnt"> Create Account </button>
+            <p><br /></p>
+            <div class='statusForm'>
+            <label><input class='radios' id="hider" type="radio" name="option" value="hider">Hider</label>
+            <label><input class='radios' id="seeker" type="radio" name="option" value="seeker">Seeker</label>
+            <p><br /></p>
+            
+            <label><input class='radios' id="host" type="radio" name="host" value="host">Host</label>
+            <label><input class='radios' id="guest" type="radio" name="host" value="guest">Guest</label>
+            </div>
+            <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase.js"></script>
+            <script>
+                
+                var n = document.querySelector('#name');
+                var myStorage = window.localStorage;
+                // Initialize Firebase
+                var config = {
+                  apiKey: "AIzaSyBq2sm_qr7Td05bOrFsp6q3VCzZRAXEIdo",
+                  authDomain: "html5practice-f99ad.firebaseapp.com",
+                  databaseURL: "https://html5practice-f99ad.firebaseio.com",
+                  projectId: "html5practice-f99ad",
+                  storageBucket: "html5practice-f99ad.appspot.com",
+                  messagingSenderId: "523059937050"
+                };
+                firebase.initializeApp(config);
+                var firestore = firebase.firestore();
+
+                const username = document.getElementById('username');
+                const password = document.getElementById('password');
+                const login = document.getElementById('SignIn');
+                const createAccnt = document.getElementById('CreateAccnt');
+
+                // Executes when sign in attempted
+                login.addEventListener('click', e => {
+                    const u = username.value;
+                    const p = password.value;
+                    const auth = firebase.auth();
+                    
+                    var status = document.querySelector('#status');
+                    status.innerHTML = "";
+                    
+                    auth.signInWithEmailAndPassword(u, p).then(function(user) {
+                            if (document.getElementById("hider").checked){
+                                myStorage.setItem('status', 'hider');
+                            } else if (document.getElementById("seeker").checked){
+                                myStorage.setItem('status', 'seeker');
+                            } else {
+                                var status = document.querySelector('#status');
+                                status.innerHTML = "pick a status, loser";
+                                return;                            
+                            }
+                            
+                            var userName = auth.currentUser;
+                            myStorage.setItem('currentUser', userName.email);
+                            if (document.getElementById("host").checked){
+                                myStorage.setItem('host', 'yes');
+                                // CREATES GAME LOBBY FOR HOST //
+                                var lobby = firestore.collection("userLocation").doc(userName.email.toString()).catch(function(error){
+                                    console.log(error);
+                                });
+//                                        .collection("players").doc(userName.email.toString());
+                                lobby.set({
+                                    userNamea : userName.email.toString()
+                                });
+                                
+                            } else if (document.getElementById("guest").checked){
+                                myStorage.setItem('host', 'no');
+                            } else {
+                                var hostestText= document.querySelector('#hostest');
+                                hostestText.innerHTML = "pick a host status, loser";
+                                return;                            
+                            }
+
+                            setTimeout(function() { window.location.href = "GameLobby.html"; }, 0);
+                         }).catch(function(error) {
+                             var status = document.querySelector('#status');
+                             var errorCode = error.code;
+                             var errorMessage = error.message;
+                             status.innerHTML = "Error: "+errorMessage;
+                             console.log(error);
+                         });
+                });
+                
+                // Executes when create account is attempted
+                createAccnt.addEventListener('click', e => {
+                    const u = username.value;
+                    const p = password.value;
+                    const auth = firebase.auth();
+                    
+                    auth.createUserWithEmailAndPassword(u, p).then(function(user) {
+                            if (document.getElementById("hider").checked){
+                                myStorage.setItem('status', 'hider');
+                            } else if (document.getElementById("seeker").checked){
+                                myStorage.setItem('status', 'seeker');
+                            } else {
+                                var status = document.querySelector('#status');
+                                status.innerHTML = "pick a status, loser";
+                                return;
+                            }
+                            var userName = auth.currentUser;
+                            myStorage.setItem('currentUser', userName.email);
+                            if (document.getElementById("host").checked){
+                                myStorage.setItem('host', 'yes');
+                                // CREATES GAME LOBBY FOR HOST //
+                                var lobby = firestore.collection("Lobbies").doc(userName.email.toString() + "Lobby").doc(userName.email);
+                                lobby.set({
+                                    userName : userName.email.toString()
+                                });
+                            } else if (document.getElementById("guest").checked){
+                                myStorage.setItem('host', 'no');
+                            } else {
+                                var hostestText = document.querySelector('#hostest');
+                                hostestText.innerHTML = "pick a host status, loser";
+                                return;                            
+                            }
+
+                            setTimeout(function() { window.location.href = "GameLobby.html"; }, 0);
+                         }).catch(function(error) {
+                             var status = document.querySelector('#status');
+                             var errorCode = error.code;
+                             var errorMessage = error.message;
+                             status.innerHTML = "Error: "+errorMessage;
+                             console.log(error);
+                         });
+                });
+                
+                
+            </script>
+            
+            <p><span id="name"></span></p>
+            <p><span id="status"></span></p>
+            <p><span id="hostest"></span></p>
+            
+        </div>
+       </main>
+    </body>
+</html>
