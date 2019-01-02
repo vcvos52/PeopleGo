@@ -39,6 +39,7 @@ import { eventBus } from "../main";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import axios from "axios";
+import { async } from 'q';
 
 export default {
   name: "Login",
@@ -51,6 +52,7 @@ export default {
         passCreate: "",
         success: "",
         error: "",
+        coords: null,
     };
   },
 
@@ -69,19 +71,49 @@ export default {
             });
     },
 
+
     create: async function() {
-        const bodyContent = { username: this.usernameCreate, password: this.passCreate};
+        var bodyContent = { username: this.usernameCreate, password: this.passCreate }
         axios
             .post("/api/users/create", bodyContent)
             .then(res => {
-            if (res.status === 201) {
+            if (res.status === 200) {
                 eventBus.$emit("login-action");
             }
             })
             .catch(err => {
             this.error = err;
-            });
+        });
+        this.updatePosition();
+    },
+
+
+    updatePosition: async function(){
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(this.getCoords, this.errorFunc, {timeout:60000, enableHighAccuracy: true});
+        } else {
+            console.log("Your browser is out of fashion, there\'s no geolocation!");
+        }
+    },
+
+
+    getCoords: async function(position){
+        var lat = position.coords.latitude;
+        var lng = position.coords.longitude;
+        let bodyContent = {username: this.usernameCreate, latitude: lat, longitude: lng};
+        axios
+            .put("/api/users/location", bodyContent)
+            .then()
+            .catch(err => {
+            this.error = err;
+        });
+    },
+
+
+    errorFunc: function(){
+      console.log("ERROR")
     }
+
   },
 
   created: function() {

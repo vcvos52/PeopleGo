@@ -3,12 +3,17 @@
     
     <b-row :no-gutters="true" id="nav" v-if="logged===true">
       <b-col lg="11">
-        <h2 id="home-button">Welcome to I Have This Food!</h2>
+        <h2 id="home-button">Welcome to People Go!</h2>
       </b-col>
       <b-col lg="1">
         <button class="button" id="signout-button" @click="logout">Log Out</button>
       </b-col>
     </b-row>
+
+    <b-row :no-gutters="true" v-if="logged===true">
+      <Lobby/>
+    </b-row>
+    
 
     <b-row  v-if="logged=== false">
       <b-col :no-gutters="true" id="nav" lg="12" v-if="logged===false">
@@ -53,14 +58,18 @@
 
 import { eventBus } from "./main";
 import Login from "./components/Login.vue";
+import Lobby from "./components/Lobby.vue";
+
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import axios from "axios";
+import io from 'socket.io-client';
 
 export default {
   name: 'app',
   components: {
-    Login
+    Login,
+    Lobby
   },
   
   data() {
@@ -69,7 +78,7 @@ export default {
     }
   },
 
-  created: async function(){        
+  created: async function(){ 
 
     // when sign in works, change HTML to load next part
     eventBus.$on("login-action", () => {
@@ -83,7 +92,7 @@ export default {
       axios
         .put("/api/users/logout")
         .then(() => { this.logged = false; })
-    }
+    }, 
   }
 
 }
@@ -92,7 +101,7 @@ export default {
 
 
 <style>
-* {
+#app {
   background-color: #ffebaf;
 }
 
@@ -107,7 +116,7 @@ export default {
   color: white;
   background-color: #3b3131;
   margin: 0;
-  padding: 10px;
+  padding: 2vh;
   text-align: center;
 }
 

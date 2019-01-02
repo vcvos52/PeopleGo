@@ -5,12 +5,6 @@ var salt = bcrypt.genSaltSync(saltRounds);
 
 
 /**
- * This acts as a database of all of the user accounts that exist
- * List(Users)
- */
-let allUsers = [];
-
-/**
  * This class is an abstraction of a single user.
  * This class provides static methods to operate on allUsers
  */
@@ -57,6 +51,19 @@ class Users {
           }
     }
 
+    /**
+     * updates the location of username in locations table
+     * @param {latlong} { {latitude: , longitude: }}
+     */
+    static async updatePosition(name, lat, long){
+        let userloc = await database.query('SELECT * FROM locations WHERE username=?;', [name]);
+        if (!Array.isArray(userloc) || !userloc.length){
+            await database.query('INSERT INTO locations (username, latitude, longitude) VALUES (?, ?, ?);', [name, lat, long]);
+        } else {
+            await database.query('UPDATE locations SET latitude=?, longitude=? WHERE username=?;', [lat, long, name]);
+        }
+    }
+
 
     /**
      * Logs the user out.
@@ -101,38 +108,6 @@ class Users {
           }    
     }
         
-    /**
-     * Changes the username of logged in user
-     * @param {String} old 
-     * @param {String} newName 
-     */
-    static async changeUsername(old, newName){
-        try {
-            var sql = `UPDATE users SET name='${newName}' WHERE name='${old}';`;
-            await database.query(sql);
-            sql = `UPDATE freets SET author='${newName}' WHERE author='${old}';`;
-            await database.query(sql);
-            sql = `UPDATE follows SET userID='${newName}' WHERE userID='${old}';`;
-            await database.query(sql);
-            sql = `UPDATE follows SET followerID='${newName}' WHERE followerID='${old}';`;
-            await database.query(sql);
-          } catch (error) {
-            throw error;
-          }  
-    }
-
-    /**
-     * Changes the logged in user's password
-     * @param {String} username 
-     * @param {String} newPassword 
-     */
-    static async changePassword(username, newPassword){
-        try {
-            await database.query('UPDATE users SET password=? WHERE username=?;', [bcrypt.hashSync(newPassword, saltRounds), username]);
-          } catch (error) {
-            throw error;
-          }  
-    }
 
     /**
      * Returns all of the user safely
@@ -161,25 +136,6 @@ class Users {
           }
     }
 
-    /**
-     * Removes the user form the all users database
-     * @param {String} username 
-     * @param {JSON} req 
-     */
-    static async deleteUser(username, req){
-        if (req.session.name === username){
-            try {
-                var sql = `DELETE FROM users WHERE username='${username}';`;
-                await database.query(sql);
-                sql = `DELETE FROM freets WHERE author='${username}';`;
-                await database.query(sql);
-                sql = `DELETE FROM follows WHERE userID='${username}' OR followerID='${username}';`;
-                await database.query(sql);
-              } catch (error) {
-                throw error;
-              }
-        }
-    }
 
     /**
      * Checks if user exists given its username
@@ -199,66 +155,7 @@ class Users {
           }
     }
 
-    /**
-     * Adds a follow connection between two users
-     * @param {String} follower - logged in user
-     * @param {String} following - user to be followed
-     */
-    static async follow(follower, following){
-        try {
-            const sql = `INSERT INTO follows (userID, followerID) VALUES ('${follower}', '${following}');`;
-            await database.query(sql);
-          } catch (error) {
-            throw error;
-          }
-    }
 
-    /**
-     * Gets rid of follow connection between two users
-     * @param {String} follower - logged in user
-     * @param {String} following - user that was being followed
-     */
-    static async unfollow(follower, following){
-        try{
-            const sql = `DELETE FROM follows WHERE userID='${follower}' AND followerID='${following}';`;
-            await database.query(sql);
-        }catch (error) {
-            throw error;
-        }
-    }
-
-    /**
-     * Checks if a user is following another user
-     * @param {String} follower - the logged in user
-     * @param {String} following - user that is being checked if followed
-     */
-    static async checkFollowed(follower, following){
-        try {
-            const sql = `SELECT * FROM follows WHERE userID='${follower}' AND followerID='${following}';`;
-            const response = await database.query(sql);
-            if (!Array.isArray(response) || !response.length){
-                return false;
-            } else {
-                return true;
-            }
-          } catch (error) {
-            throw error;
-          }
-    }
-
-    /**
-     * Gets all of the freets of all of the users that are being followed
-     * @param {String} username - user to get their freets
-     */
-    static async getFollowersFreets(username){
-        try{
-            const sql = `SELECT * FROM freets WHERE author IN (SELECT followerID FROM follows WHERE userID='${username}') OR refreeterID IN (SELECT followerID FROM follows WHERE userID='${username}');`;
-            const response = await database.query(sql);
-            return response;
-        } catch(error){
-            throw error;
-        }
-    }
 }
 
 module.exports = Users;

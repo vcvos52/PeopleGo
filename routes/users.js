@@ -22,7 +22,7 @@ router.post('/create', async (req, res) => {
   }
   await Users.addUser(req.body.username.toString(), req.body.password.toString());
   req.session.name = req.body.username.toString();
-  res.status(201).json(req.body.username.toString()).end();
+  res.status(200).json(req.body.username.toString()).end();
 });
 
 
@@ -51,8 +51,16 @@ router.post('/login', async (req, res) => {
       res.status(401).json("Incorrect Password").end();
       return;
   }
-  req.session.name = user.name;
+  req.session.name = user.username;
   res.status(200).json(user).end();
+});
+
+
+router.put('/location', async (req, res) => {
+    console.log(req.body);
+    req.session.name = req.body.username;
+    await Users.updatePosition(req.body.username.toString(), req.body.latitude, req.body.longitude)
+    res.status(200).json("position updated").end();
 });
 
 
@@ -69,6 +77,12 @@ router.put('/logout', async (req, res) => {
   req.session.name = null;
   res.status(201).json("You logged out. Congrats.").end();
 });
+
+
+router.get('/getName', (req, res) => {
+    // console.log(req.session.name);
+    res.status(201).json(req.session.name).end();
+})
 
 
 module.exports = router;
