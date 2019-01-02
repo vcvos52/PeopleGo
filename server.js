@@ -4,8 +4,10 @@
  * Module dependencies.
  */
 
+const PORT = process.env.PORT || 3000;
 var app = require('./app');
-var http = require('http').Server(app);
+app.set(PORT);
+var http = require('http').createServer(app);
 var debug = require('debug')('people-go');
 
 // const server = app.listen(3000, function() {
@@ -27,8 +29,7 @@ io.on('connection', function (socket) {
     });
   });
 
-const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => console.log('listening on port 3000'));
+http.listen(PORT);
 
 /**
  * Normalize a port into a number, string, or false.
