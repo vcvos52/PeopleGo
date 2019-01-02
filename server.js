@@ -24,8 +24,14 @@ io.on('connection', function (socket) {
     // start listening for coords
     socket.on('coords', function (data) {
   
-        // broadcast your coordinates to everyone except you
+
         io.emit('coords', data);
+    });
+    // start listening for logout
+    socket.on('logout', function(data) {
+
+
+        io.emit('logout', data)
     });
   });
 

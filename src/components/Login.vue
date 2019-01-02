@@ -6,9 +6,9 @@
       </b-row>
       <b-row>
         <b-form  v-on:submit.prevent="login" method="post" inline>
-          <b-input id="usernameLog" v-model="usernameLog" placeholder="Username" />
+          <b-input id="usernameLog" v-model="usernameLog" placeholder="Username" value=""/>
           <b-input-group left="@" class="mb-2 mr-sm-2 mb-sm-0">
-            <b-input id="passLog" v-model="passLog" placeholder="Password" type="password"/>
+            <b-input id="passLog" v-model="passLog" placeholder="Password" type="password" value=""/>
           </b-input-group>
           <b-button type="submit">Log In</b-button>
         </b-form>
@@ -21,9 +21,9 @@
       </b-row>
       <b-row>
         <b-form  v-on:submit.prevent="create" method="post" inline>
-          <b-input id="usernameCreate" v-model="usernameCreate" placeholder="Username" />
+          <b-input id="usernameCreate" v-model="usernameCreate" placeholder="Username" value=""/>
           <b-input-group left="@" class="mb-2 mr-sm-2 mb-sm-0">
-            <b-input id="passCreate" v-model="passCreate" placeholder="Password" type="password"/>
+            <b-input id="passCreate" v-model="passCreate" placeholder="Password" type="password" value=""/>
           </b-input-group>
           <b-button type="submit" >Create Account</b-button>
         </b-form>
@@ -64,6 +64,8 @@ export default {
             .then(res => {
             if (res.status === 201 || res.status === 200) {
                 eventBus.$emit("login-action");
+                this.usernameLog = "";
+                this.passLog = "";
             }
             })
             .catch(err => {
@@ -107,6 +109,8 @@ export default {
             .catch(err => {
             this.error = err;
         });
+        this.usernameCreate = "";
+        this.passCreate = "";
     },
 
   },

@@ -3,6 +3,7 @@
     <!-- <script src="./js/lib/leaflet.js"></script>
     <script src="/socket.io/socket.io.js"></script> -->
     <div id="mapcanvas"></div>
+    <button @click="gameSetUp">Start a Game!</button>
   </b-col>
 </template>
 
@@ -13,11 +14,10 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import axios from "axios";
 import L from "leaflet";
-import io from 'socket.io-client';
-var socket = null;
+import { socket } from "../main";
+
 var connections = {}
 let marker = new google.maps.Marker({
-      title:"Balls"
   });
 var id;
 
@@ -41,11 +41,11 @@ export default {
   },
 
  created: function(){
-    socket = io();
  },
 
  mounted(){
         socket.on("coords", data => {
+            console.log("Socket on location update");
             if (data.name in this.markers){
                 let m = this.markers[data.name];
                 m.setMap(null);
@@ -61,26 +61,32 @@ export default {
             this.connects = JSON.stringify(connections);
         });
 
+        socket.on("logout", (data) => {
+            console.log("Socket on logout");
+            if (data.name in this.markers){
+                let m = this.markers[data.name];
+                console.log(m)
+                m.setMap(null);
+            }
+        });
+
         if (navigator.geolocation) {
             id = navigator.geolocation.watchPosition(this.positionSuccess);
             console.log("Got that position");
         } else {
             console.log("Your browser is out of fashion, there\'s no geolocation!");
         }
+
+        // listening for logout information
+        eventBus.$on("logout", (username) => {
+            navigator.geolocation.clearWatch(id);
+            let sendData = {name: username.data};
+            socket.emit("logout", sendData);
+        });
     },
 
 
  methods:{
-
-    //  getpos: function(){
-    //     // check whether browser supports geolocation api
-    //     if (navigator.geolocation) {
-    //         navigator.geolocation.getCurrentPosition(this.positionSuccess);
-    //         console.log("Got that position");
-    //     } else {
-    //         console.log("Your browser is out of fashion, there\'s no geolocation!");
-    //     }
-    //  },
 
      positionSuccess: function(position){
             const ref = this;
@@ -116,12 +122,12 @@ export default {
                     socket.emit("coords", sentData);
                 })
 
-     }
+     },
  },
 
  beforeDestroy: function(){
      navigator.geolocation.clearWatch(id);
-     
+
  }
 
 };

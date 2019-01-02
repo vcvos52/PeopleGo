@@ -13,6 +13,10 @@
     <b-row :no-gutters="true" v-if="logged===true">
       <Lobby/>
     </b-row>
+
+    <b-col v-if="logged===true && setUp===true">
+      <StartGame/>
+    </b-col>
     
 
     <b-row  v-if="logged=== false">
@@ -59,27 +63,30 @@
 import { eventBus } from "./main";
 import Login from "./components/Login.vue";
 import Lobby from "./components/Lobby.vue";
+import StartGame from "./components/StartGame.vue";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import axios from "axios";
-import io from 'socket.io-client';
+import { socket } from "./main";
+
 
 export default {
   name: 'app',
   components: {
     Login,
-    Lobby
+    Lobby,
+    StartGame
   },
   
   data() {
     return{
       logged: false,
+      setUp: false,
     }
   },
 
   created: async function(){ 
-
     // when sign in works, change HTML to load next part
     eventBus.$on("login-action", () => {
       this.logged = true;
@@ -103,9 +110,11 @@ export default {
 
   methods: {
     logout: function() {
-      axios
-        .put("/api/users/logout")
-        .then(() => { this.logged = false; })
+      axios.put("/api/users/logout")
+        .then((username) => { 
+          this.logged = false;
+          eventBus.$emit("logout", username);
+        });
     }, 
   }
 

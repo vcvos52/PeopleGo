@@ -74,8 +74,9 @@ router.put('/location', async (req, res) => {
  * @throws {403} - if the username is from MIT
 */
 router.put('/logout', async (req, res) => {
-  req.session.name = null;
-  res.status(201).json("You logged out. Congrats.").end();
+    let oldName = req.session.name;
+    req.session.name = null;
+    res.status(201).json(oldName).end();
 });
 
 
