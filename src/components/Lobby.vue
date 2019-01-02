@@ -19,6 +19,7 @@ var connections = {}
 let marker = new google.maps.Marker({
       title:"Balls"
   });
+var id;
 
 
 var map;
@@ -34,7 +35,7 @@ export default {
         markers: {},
         active: false,
         latLng: {},
-        markers: [],
+        markers: {},
         initLoad: true
     };
   },
@@ -45,7 +46,10 @@ export default {
 
  mounted(){
         socket.on("coords", data => {
-            console.log(data);
+            if (data.name in this.markers){
+                let m = this.markers[data.name];
+                m.setMap(null);
+            }
             connections[data.name] = data.coords;
             var newLatLong = new google.maps.LatLng(data.coords[0].lat, data.coords[0].lng);
             var newMarker = new google.maps.Marker({
@@ -53,11 +57,12 @@ export default {
                 position: newLatLong,
                 map: map
             });
+            this.markers[data.name] = newMarker;
             this.connects = JSON.stringify(connections);
         });
 
         if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(this.positionSuccess);
+            id = navigator.geolocation.watchPosition(this.positionSuccess);
             console.log("Got that position");
         } else {
             console.log("Your browser is out of fashion, there\'s no geolocation!");
@@ -112,6 +117,11 @@ export default {
                 })
 
      }
+ },
+
+ beforeDestroy: function(){
+     navigator.geolocation.clearWatch(id);
+     
  }
 
 };

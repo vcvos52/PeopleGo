@@ -37,7 +37,7 @@ router.post('/create', async (req, res) => {
 */
 router.post('/login', async (req, res) => {
   if (req.session.name){
-      res.status(401).json("please log out first").end();
+      res.status(403).json("please log out first").end();
       return;
   }
   let username = req.body.username.toString();
@@ -48,7 +48,7 @@ router.post('/login', async (req, res) => {
   }
   let user = await Users.findUser(username);
   if (!Users.comparePass(password, user.password)){
-      res.status(401).json("Incorrect Password").end();
+      res.status(403).json("Incorrect Password").end();
       return;
   }
   req.session.name = user.username;
@@ -82,7 +82,15 @@ router.put('/logout', async (req, res) => {
 router.get('/getName', (req, res) => {
     // console.log(req.session.name);
     res.status(201).json(req.session.name).end();
-})
+});
+
+router.get('/isSigned', (req, res)=> {
+    if (!req.session.name) {
+        res.status(401).json("You are not signed in").end();
+        return;
+    }
+    res.status(200).json("You are signed in").end();
+});
 
 
 module.exports = router;

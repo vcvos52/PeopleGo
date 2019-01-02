@@ -85,6 +85,20 @@ export default {
       this.logged = true;
     });
 
+
+    /**
+     * Checks if the user is currently signed in
+     * This decided what HTML elements to render
+     */
+    axios
+      .get("/api/users/isSigned")
+      .then(() => {
+        this.logged = true;
+      })
+      .catch(res => {
+        this.isSignedIn = false;
+      });
+
   },
 
   methods: {
@@ -103,6 +117,7 @@ export default {
 <style>
 #app {
   background-color: #ffebaf;
+  height: 0vh;
 }
 
 #app {

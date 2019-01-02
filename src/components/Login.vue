@@ -8,7 +8,7 @@
         <b-form  v-on:submit.prevent="login" method="post" inline>
           <b-input id="usernameLog" v-model="usernameLog" placeholder="Username" />
           <b-input-group left="@" class="mb-2 mr-sm-2 mb-sm-0">
-            <b-input id="passLog" v-model="passLog" placeholder="Password" />
+            <b-input id="passLog" v-model="passLog" placeholder="Password" type="password"/>
           </b-input-group>
           <b-button type="submit">Log In</b-button>
         </b-form>
@@ -23,7 +23,7 @@
         <b-form  v-on:submit.prevent="create" method="post" inline>
           <b-input id="usernameCreate" v-model="usernameCreate" placeholder="Username" />
           <b-input-group left="@" class="mb-2 mr-sm-2 mb-sm-0">
-            <b-input id="passCreate" v-model="passCreate" placeholder="Password" />
+            <b-input id="passCreate" v-model="passCreate" placeholder="Password" type="password"/>
           </b-input-group>
           <b-button type="submit" >Create Account</b-button>
         </b-form>
@@ -67,7 +67,7 @@ export default {
             }
             })
             .catch(err => {
-              this.error = err;
+              this.error = "Incorrect username or password; please try again";
             });
     },
 
@@ -79,12 +79,12 @@ export default {
             .then(res => {
             if (res.status === 200) {
                 eventBus.$emit("login-action");
+                this.updatePosition();
             }
             })
             .catch(err => {
-            this.error = err;
+              this.error = "The username is either taken or invalid.";
         });
-        this.updatePosition();
     },
 
 
@@ -109,11 +109,6 @@ export default {
         });
     },
 
-
-    errorFunc: function(){
-      console.log("ERROR")
-    }
-
   },
 
   created: function() {
@@ -121,23 +116,25 @@ export default {
     this.sucess = "";
   },
 
-  updated: function() {
-    this.error = "";
-    this.sucess = "";
-  }
 };
 </script>
 
 
 <style scoped>
 #login {
-  padding-top: 40px;
+  padding-top: 20px;
+  padding-bottom: 20px;
   width: 100%;
   text-align: center;
   display: flex;
   flex-flow: column;
   align-items: center;
   justify-content: center;
+}
+
+p {
+  color:red;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
 #login-form{
