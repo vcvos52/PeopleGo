@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
-const Users = require('../Models/Users');
-const Requests = require('../Models/Requests');
+const Users = require('../models/Users');
+const Requests = require('../models/Requests');
 const axios = require('axios');
 
 
