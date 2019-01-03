@@ -100,6 +100,7 @@ export default {
     // when sign in works, change HTML to load next part
     eventBus.$on("login-action", (username) => {
       this.logged = true;
+      console.log(username);
       this.username = username;
     });
 

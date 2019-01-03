@@ -26,16 +26,6 @@ class Users {
         return bcrypt.compareSync(text, hash);
     }
 
-    /**
-     * deletes the freet from the user database
-     * @param {Freet} freet the freet to be deleted
-     */
-    static async deleteFreet(freet){
-        let index = this.freets.indexOf(freet);
-        if (index > -1){
-            this.freets.splice(index, 1);
-        }
-    }
 
     /**
      * Adds a new user to the allUsers database
@@ -58,7 +48,8 @@ class Users {
     static async updatePosition(name, lat, long){
         let userloc = await database.query('SELECT * FROM locations WHERE username=?;', [name]);
         if (!Array.isArray(userloc) || !userloc.length){
-            await database.query('INSERT INTO locations (username, latitude, longitude) VALUES (?, ?, ?);', [name, lat, long]);
+            await database.query('INSERT INTO locations (username, latitude, longitude) VALUES (?, ?, ?);', [name, lat, long]).then(() => {return})
+                .catch(async function(){await database.query('UPDATE locations SET latitude=?, longitude=? WHERE username=?;', [lat, long, name])});
         } else {
             await database.query('UPDATE locations SET latitude=?, longitude=? WHERE username=?;', [lat, long, name]);
         }
@@ -78,6 +69,22 @@ class Users {
           } catch (error) {
             throw error;
           }
+    }
+
+
+    static async getLocation(username){
+        let location = await database.query(`select * from locations where username='${username}';`);
+        return location[0];
+    }
+    
+
+    static async deactivateLocation(username){
+        await database.query(`delete from locations where username='${username}'`);
+        // await database.query('UPDATE locations SET latitude=?, longitude=? WHERE username=?;', [lat, long, name]);
+    }
+
+    static async getAllLocations(){
+        return await database.query('select * from locations;');
     }
 
 

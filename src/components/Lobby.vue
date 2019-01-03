@@ -49,7 +49,7 @@ export default {
  mounted(){
         socket.on("coords", data => {
             console.log("Socket on location update ", data.name);
-            axios.put('api/users/location', {username: data.name, latitude: data.coords[0].lat, longitude: data.coords[0].lng})
+            axios.put('api/users/location', {username: data.name, latitude: data.coords[0].lat, longitude: data.coords[0].lng});
             if (data.name in this.markers){
                 let m = this.markers[data.name];
                 m.setMap(null);
@@ -78,8 +78,6 @@ export default {
         socket.on('match-made', (data) => {
             if (data.username in this.markers){
                 let m = this.markers[data.username];
-                let lat = m.getPosition().lat();
-                let long = m.getPosition().lng();
                 var circle = new google.maps.Circle({
                     map: map,
                     radius: data.radius*1600,
@@ -152,7 +150,10 @@ export default {
                 };
                 map = new google.maps.Map(document.getElementById("mapcanvas"), myOptions);
                 this.initLoad = false;
+                this.populateMap();
+
             }
+
 
             // emits the users new position to all other users.
             axios.get('api/users/getName').then(function(name) {
@@ -169,6 +170,25 @@ export default {
                 })
 
      },
+
+     populateMap: function(){
+         axios.get('api/users/getAllLocation').then(locations => {
+             console.log("Locations: ", locations.data)
+             for (var i = 0; i < locations.data.length; i++){
+                let person = locations.data[i];
+                var newLatLong = new google.maps.LatLng(person.latitude, person.longitude);
+                var newMarker = new google.maps.Marker({
+                    title: person.username,
+                    position: newLatLong,
+                    map: map
+                });
+                console.log("Fake marker: ", newMarker);
+                this.markers[person.username] = newMarker;
+             }
+         })
+     }
+
+
  },
 
  beforeDestroy: function(){

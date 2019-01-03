@@ -58,12 +58,19 @@ router.post('/login', async (req, res) => {
 
 router.put('/location', async (req, res) => {
     console.log(req.body);
-    req.session.name = req.body.username;
     await Users.updatePosition(req.body.username.toString(), req.body.latitude, req.body.longitude)
     res.status(200).json("position updated").end();
 });
 
+router.get('/getLocation/:username', async (req, res) => {
+    let location = await Users.getPosition(req.params.username)
+    res.status(200).json(location).end();
+});
 
+router.get('/getAllLocation', async (req, res) => {
+    let all = await Users.getAllLocations();
+    res.status(200).json(all).end();
+})
 
 router.put('/locationUpdate', async (req, res) => {
     console.log(req.body);
@@ -82,6 +89,7 @@ router.put('/locationUpdate', async (req, res) => {
 */
 router.put('/logout', async (req, res) => {
     let oldName = req.session.name;
+    await Users.deactivateLocation(oldName);
     req.session.name = null;
     res.status(201).json(oldName).end();
 });
