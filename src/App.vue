@@ -1,6 +1,7 @@
 <template>
   <b-container fluid id="app">
     
+    <!-- Signed in header bar -->
     <b-row :no-gutters="true" id="nav" v-if="logged===true">
       <b-col lg="11">
         <h2 id="home-button">Welcome to People Go!</h2>
@@ -10,49 +11,55 @@
       </b-col>
     </b-row>
 
-    <b-row :no-gutters="true" v-if="logged===true">
+    <!-- The game map -->
+    <b-row :no-gutters="true" v-if="logged===true" id="maparea">
       <Lobby/>
     </b-row>
 
-    <b-col v-if="logged===true && setUp===true">
+    <!-- The game options menu -->
+    <b-col class="gameOptionsCanvas" v-if="logged===true && setUp===true">
       <StartGame/>
     </b-col>
-    
 
+    <!-- Button to bring up game settings -->
+    <b-row class="bottomButton" v-if="logged===true && matchInitialized===false" lg="1">
+      <b-button class="gameSetup" id="game-setup" @click="activateSetUp">Setup a Game!</b-button>
+    </b-row>
+
+    <!-- Button after the match is setup -->
+    <b-row class="bottomButton" v-if="logged===true && matchInitialized===true" lg="1">
+      <b-col>
+        <b-button class="gameSetup" id="game-setup" @click="endMatch">End Match</b-button>
+      </b-col>
+      <b-col>
+        <b-button class="gameSetup" id="game-setup" @click="start">Start Game!</b-button>
+      </b-col>
+    </b-row>
+
+    <!-- Button after match joined -->
+    <b-row class="bottomButton" v-if="logged===true && matchInitialized===false && matchJoined===true" lg="1">
+        <b-button class="gameSetup" id="game-setup" @click="leaveMatch">Leave Match</b-button>
+    </b-row>
+
+    <!-- Signed out header bar -->
     <b-row  v-if="logged=== false">
       <b-col :no-gutters="true" id="nav" lg="12" v-if="logged===false">
         <h2 id="home-button">Welcome to People Go!</h2>
       </b-col>
     </b-row>
 
+    <!-- The Log in Form -->
     <b-row v-if="logged === false" class="not-logged">
       <Login/>
-      <!-- Login is a b-col -->
     </b-row>
 
-
-    <!-- <b-row v-else-if="logged === true" class="logged">
-      <b-col lg="8" id="left">
-        <div v-if="currentAction === 'choice'">
-          <Choice></Choice>
-        </div>
-        <div v-else-if="currentAction === 'donate'">
-          <Donate></Donate>
-        </div>
-        <div v-else-if="currentAction === 'receive'">
-          <Receive></Receive>
-        </div>
-      </b-col>
-      <b-col lg="4" id="right">
-        <Meals></Meals>
-      </b-col>
-    </b-row> -->
-
+    <!-- The Error message -->
     <div v-if="error" class="error-message">
       <b>{{error}}</b>
     </div>
 
-    <b-row>
+    <!-- Copy rights at bottom -->
+    <b-row style="height: 30px;">
       <b-col id="copyrights">Made by The Cakes</b-col>
     </b-row>
   </b-container>
@@ -83,13 +90,32 @@ export default {
     return{
       logged: false,
       setUp: false,
+      username: "",
+      matchInitialized: false,
+      matchJoined: false
     }
   },
 
   created: async function(){ 
     // when sign in works, change HTML to load next part
-    eventBus.$on("login-action", () => {
+    eventBus.$on("login-action", (username) => {
       this.logged = true;
+      this.username = username;
+    });
+
+
+    eventBus.$on("initialize-Match", (data) => {
+      console.log("destroy setup...");
+      this.setUp = false;
+      document.getElementById("maparea").style.opacity = "1";
+      axios.post('api/requests/host', data).then(res => {
+          if (res.status === 201 || res.status === 200) {
+            console.log("Success!")
+          }
+      }).catch(err => {console.log("failure")});
+
+      socket.emit('match-made', {username: this.username, radius: data.radius});
+      this.matchInitialized = true;
     });
 
 
@@ -99,11 +125,11 @@ export default {
      */
     axios
       .get("/api/users/isSigned")
-      .then(() => {
+      .then((username) => {
         this.logged = true;
       })
       .catch(res => {
-        this.isSignedIn = false;
+        this.logged = false;
       });
 
   },
@@ -114,13 +140,60 @@ export default {
         .then((username) => { 
           this.logged = false;
           eventBus.$emit("logout", username);
+          this.setUp = false;
+          document.getElementById("maparea").style.opacity = "1";
         });
+
+      if (this.matchInitialized){
+          this.endMatch();
+      } else if (this.matchJoined){
+          this.leaveMatch();
+      }
     }, 
+
+    activateSetUp: function() {
+      this.setUp = true;
+      document.getElementById("maparea").style.opacity = "0.5";
+    },
+
+    sendPosition: function(){
+
+    },
+
+    start: function(){
+
+    },
+
+    endMatch: function(){
+      axios.delete(`api/requests/match/${this.username}`)
+        .then(() => {
+          socket.emit("match-deleted", {username: this.username});
+          this.matchInitialized = false
+        })
+    },
+
+    leaveMatch: function(){
+      axios.delete(`api/requests/leave/${this.username}`)
+        .then(() => {
+          socket.emit("match-left", {username: this.username})
+        })
+        .then(() => {this.matchJoined = false});
+    }
+
   }
 
 }
 
 </script>
+
+<style scoped>
+input {
+  outline: 0;
+  margin-left: 10px;
+  background-color: white;
+}
+</style>
+
 
 
 <style>
@@ -155,16 +228,31 @@ export default {
   bottom: 0;
 }
 
+.bottomButton {
+  width: 100vw;
+  position: absolute;
+  bottom: 50px;
+  height: 5vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .button {
   margin-top: 10px;
   background-color: #f1b101;
 }
 
+.gameSetup {
+  height: 5vh;
+}
 
-input {
-  outline: 0;
-  margin-left: 10px;
-  background-color: white;
+.gameOptionsCanvas {
+  height: 100vh;
+  width:100vw;
+  top: 8vh;
+  bottom: 30px;
+  position: fixed;
 }
 
 #signout {

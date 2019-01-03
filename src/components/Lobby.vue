@@ -3,7 +3,6 @@
     <!-- <script src="./js/lib/leaflet.js"></script>
     <script src="/socket.io/socket.io.js"></script> -->
     <div id="mapcanvas"></div>
-    <button @click="gameSetUp">Start a Game!</button>
   </b-col>
 </template>
 
@@ -36,7 +35,11 @@ export default {
         active: false,
         latLng: {},
         markers: {},
-        initLoad: true
+        circles: {},
+        initLoad: true,
+        inMatch: false,
+        activeMatchHost: "",
+        activeMatchPlayers: {}
     };
   },
 
@@ -45,7 +48,8 @@ export default {
 
  mounted(){
         socket.on("coords", data => {
-            console.log("Socket on location update");
+            console.log("Socket on location update ", data.name);
+            axios.put('api/users/location', {username: data.name, latitude: data.coords[0].lat, longitude: data.coords[0].lng})
             if (data.name in this.markers){
                 let m = this.markers[data.name];
                 m.setMap(null);
@@ -65,8 +69,50 @@ export default {
             console.log("Socket on logout");
             if (data.name in this.markers){
                 let m = this.markers[data.name];
-                console.log(m)
                 m.setMap(null);
+                delete this.markers[data.name];
+
+            }
+        });
+
+        socket.on('match-made', (data) => {
+            if (data.username in this.markers){
+                let m = this.markers[data.username];
+                let lat = m.getPosition().lat();
+                let long = m.getPosition().lng();
+                var circle = new google.maps.Circle({
+                    map: map,
+                    radius: data.radius*1600,
+                    fillColor: '#AA0000'
+                });
+                circle.bindTo('center', m, 'position');
+                this.circles[data.username] = circle;
+                this.activeMatchHost = data.username;
+            }else {console.log("not in markers")}
+        });
+
+        socket.on('match-deleted', (data) => {
+            if (this.inMatch){
+                if (data.username === this.activeMatchHost){
+                    this.inMatch = false;
+                    /// TODO: render the normal map, not in game map ///
+                }
+            } else {
+                if (data.username in this.circles){
+                    let c = this.circles[data.username];
+                    c.setMap(null);
+                    delete this.circles[data.username];
+                }
+            }
+        });
+
+        socket.on('match-left', (data) => {
+            if (this.inMatch){
+                if (data.username in this.activeMatchPlayers){
+                    let m = this.activeMatchPlayers[data.username];
+                    m.setMap(null);
+
+                }
             }
         });
 

@@ -8,17 +8,17 @@ const axios = require('axios');
 /**
  * Make host request
  * @name POST/api/requests/host
- * @param {location: position.coords, radius: {int}, seeker: {Boolean}}
+ * @param {radius: {int}, seeker: {Boolean}}
  */
 router.post('/host', async (req, res) => {
-    let location = req.body.location;
-    let latLong = {latitude: location.latitude, longitude: location.longitude};
-    let radius = req.body.radius;
+    let radius = parseFloat(req.body.radius);
     let seeker = req.body.seeker;
+    let username = req.session.name;
+    console.log(req.session.name);
     let seek;
-    if (seeker){seek = 1;}
+    if (seeker === "1"){seek = 1;}
     else {seek = 0;}
-    await Requests.makeHostRequest(username, latLong, radius, seek);
+    await Requests.makeHostRequest(username, radius, seek);
     res.status(201).json("Success!").end();
 });
 
@@ -33,6 +33,7 @@ router.post('/join', async (req, res) => {
     let latLong = {latitude: location.latitude, longitude: location.longitude};
     let seeker = req.body.seeker;
     let hostName = req.body.hostName;
+    let username = req.session.name;
     if (!(await Requests.checkInMatch(latLong, hostName))){
         res.status(401).json("You need to be within the game radius to join").end();
         return;
@@ -42,5 +43,18 @@ router.post('/join', async (req, res) => {
     await Requests.makeJoinRequest(username, latLong, hostName, seek);
     res.status(201).json("Success!").end();
 });
+
+
+router.delete('/match/:username', async (req, res) => {
+    let username = req.params.username;
+    await Requests.deleteMatch(username);
+    res.status(201).json("success").end();
+});
+
+router.delete('/leave/:username', async (req, res) => {
+    let username = req.params.username;
+    await Requests.leaveMatch(username);
+    res.status(201).json("success").end();
+})
 
 module.exports = router;

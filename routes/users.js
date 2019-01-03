@@ -65,6 +65,13 @@ router.put('/location', async (req, res) => {
 
 
 
+router.put('/locationUpdate', async (req, res) => {
+    console.log(req.body);
+    await Users.updatePosition(req.session.name, req.body.latitude, req.body.longitude)
+    res.status(200).json(req.session.name).end();
+});
+
+
 /**
  * Logout
  * Log out of a session

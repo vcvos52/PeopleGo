@@ -62,11 +62,11 @@ export default {
         axios
             .post("/api/users/login", bodyContent)
             .then(res => {
-            if (res.status === 201 || res.status === 200) {
-                eventBus.$emit("login-action");
-                this.usernameLog = "";
-                this.passLog = "";
-            }
+                if (res.status === 201 || res.status === 200) {
+                    eventBus.$emit("login-action", this.usernameLog);
+                    this.usernameLog = "";
+                    this.passLog = "";
+                }
             })
             .catch(err => {
               this.error = "Incorrect username or password; please try again";
@@ -80,7 +80,7 @@ export default {
             .post("/api/users/create", bodyContent)
             .then(res => {
             if (res.status === 200) {
-                eventBus.$emit("login-action");
+                eventBus.$emit("login-action", this.usernameCreate);
                 this.updatePosition();
             }
             })
@@ -134,6 +134,12 @@ export default {
   flex-flow: column;
   align-items: center;
   justify-content: center;
+}
+
+input {
+  outline: 0;
+  margin-left: 10px;
+  background-color: white;
 }
 
 p {

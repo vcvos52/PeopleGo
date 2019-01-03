@@ -33,6 +33,21 @@ io.on('connection', function (socket) {
 
         io.emit('logout', data)
     });
+    // starts listening for a match being initialized
+    socket.on('match-made', function(data) {
+
+        io.emit('match-made', data)
+    });
+    // starts listening for leaving a match
+    socket.on('match-left', function(data) {
+
+        io.emit('match-left', data)
+    });
+    // starts listening for leaving a match
+    socket.on('match-deleted', function(data) {
+
+        io.emit('match-deleted', data)
+    });
   });
 
 http.listen(PORT);
