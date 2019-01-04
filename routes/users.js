@@ -36,7 +36,9 @@ router.post('/create', async (req, res) => {
  * @throws {403} - if the user is already logged into another device
 */
 router.post('/login', async (req, res) => {
+    console.log("Session name on LOGIN: ", req.session.name);
   if (req.session.name){
+      console.log("already logged in");
       res.status(403).json("please log out first").end();
       return;
   }
@@ -48,6 +50,7 @@ router.post('/login', async (req, res) => {
   }
   let user = await Users.findUser(username);
   if (!Users.comparePass(password, user.password)){
+      console.log("incorrect Password");
       res.status(403).json("Incorrect Password").end();
       return;
   }
@@ -57,7 +60,7 @@ router.post('/login', async (req, res) => {
 
 
 router.put('/location', async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     await Users.updatePosition(req.body.username.toString(), req.body.latitude, req.body.longitude)
     res.status(200).json("position updated").end();
 });
@@ -73,7 +76,7 @@ router.get('/getAllLocation', async (req, res) => {
 })
 
 router.put('/locationUpdate', async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     await Users.updatePosition(req.session.name, req.body.latitude, req.body.longitude)
     res.status(200).json(req.session.name).end();
 });
@@ -91,6 +94,7 @@ router.put('/logout', async (req, res) => {
     let oldName = req.session.name;
     await Users.deactivateLocation(oldName);
     req.session.name = null;
+    console.log("Name within api call logout: ", req.session.name);
     res.status(201).json(oldName).end();
 });
 

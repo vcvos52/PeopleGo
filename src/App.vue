@@ -29,10 +29,10 @@
     <!-- Button after the match is setup -->
     <b-row class="bottomButton" v-if="logged===true && matchInitialized===true" lg="1">
       <b-col>
-        <b-button class="gameSetup" id="game-setup" @click="endMatch">End Match</b-button>
+        <b-button class="endMatch" id="end-match" @click="endMatch">End Match</b-button>
       </b-col>
       <b-col>
-        <b-button class="gameSetup" id="game-setup" @click="start">Start Game!</b-button>
+        <b-button class="startMatch" id="start-match" @click="start">Start Game!</b-button>
       </b-col>
     </b-row>
 
@@ -76,6 +76,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import axios from "axios";
 import { socket } from "./main";
+import { async } from 'q';
 
 
 export default {
@@ -136,14 +137,14 @@ export default {
   },
 
   methods: {
-    logout: function() {
-      axios.put("/api/users/logout")
+    logout: async function() {
+      await axios.put("/api/users/logout")
         .then((username) => { 
           this.logged = false;
           eventBus.$emit("logout", username);
           this.setUp = false;
           document.getElementById("maparea").style.opacity = "1";
-        });
+        }).catch(() => {console.log("catch on logout")});
 
       if (this.matchInitialized){
           this.endMatch();

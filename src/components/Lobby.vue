@@ -182,7 +182,6 @@ export default {
                     position: newLatLong,
                     map: map
                 });
-                console.log("Fake marker: ", newMarker);
                 this.markers[person.username] = newMarker;
              }
          })

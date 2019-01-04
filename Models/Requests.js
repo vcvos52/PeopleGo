@@ -53,7 +53,7 @@ class Requests {
      */
     static async deleteMatch(username){
         let matches = await database.query(`select * from Matches where username='${username}' and host=${1};`);
-        console.log(matches, username);
+        // console.log(matches, username);
         if (matches.length === 0){
             return;
         }
