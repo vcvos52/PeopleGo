@@ -48,10 +48,15 @@ io.on('connection', function (socket) {
 
         io.emit('match-left', data)
     });
-    // starts listening for leaving a match
+    // starts listening for deleting a match
     socket.on('match-deleted', function(data) {
 
         io.emit('match-deleted', data)
+    });
+    // starts listening for entering a match
+    socket.on('match-joined', function(data) {
+
+        io.emit('match-joined', data)
     });
   });
 

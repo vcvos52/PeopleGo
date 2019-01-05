@@ -21,6 +21,11 @@
       <StartGame/>
     </b-col>
 
+    <!-- The game options menu -->
+    <b-col class="gameOptionsCanvas" v-if="logged===true && setUp===false && askToJoin===true">
+      <askJoin v-bind:host="circleHost" v-bind:coords="coords"/>
+    </b-col>
+
     <!-- Button to bring up game settings -->
     <b-row class="bottomButton" v-if="logged===true && matchInitialized===false" lg="1">
       <b-button class="gameSetup" id="game-setup" @click="activateSetUp">Setup a Game!</b-button>
@@ -71,6 +76,7 @@ import { eventBus } from "./main";
 import Login from "./components/Login.vue";
 import Lobby from "./components/Lobby.vue";
 import StartGame from "./components/StartGame.vue";
+import askJoin from "./components/askJoin.vue";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
@@ -86,7 +92,8 @@ export default {
   components: {
     Login,
     Lobby,
-    StartGame
+    StartGame,
+    askJoin
   },
   
   data() {
@@ -95,11 +102,14 @@ export default {
       setUp: false,
       username: "",
       matchInitialized: false,
-      matchJoined: false
+      matchJoined: false,
+      askToJoin: false,
+      circleHost: "",
+      coords: null,
     }
   },
 
-  created: async function(){ 
+  created: async function(){
     // when sign in works, change HTML to load next part
     eventBus.$on("login-action", (username) => {
       this.logged = true;
@@ -120,6 +130,20 @@ export default {
 
       socket.emit('match-made', {username: this.username, radius: data.radius});
       this.matchInitialized = true;
+    });
+
+    eventBus.$on("ask-to-join", (data) => {
+      console.log("asking to join ", data);
+      this.circleHost = data.title;
+      this.coords = data.coords;
+      this.askToJoin = true;
+    });
+
+    eventBus.$on("cancel-ask", (joined) => {
+      console.log("cancelling ask");
+      this.circleHost = "";
+      this.askToJoin = false;
+      if (joined){this.matchJoined = true}
     });
 
 

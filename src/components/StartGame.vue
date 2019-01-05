@@ -14,7 +14,7 @@
                 </b-row>
 
                 Choose Hider or Seeker:
-                <b-form-select v-model="role" class="mb-3">
+                <b-form-select v-model="role" class="mb-3" required="true">
                     <option value="0">Hider</option>
                     <option value="1">Seeker</option>
                 </b-form-select>

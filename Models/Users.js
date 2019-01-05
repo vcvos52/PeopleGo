@@ -72,7 +72,7 @@ class Users {
     }
 
 
-    static async getLocation(username){
+    static async getPosition(username){
         let location = await database.query(`select * from locations where username='${username}';`);
         return location[0];
     }

@@ -31,6 +31,7 @@ class Requests {
         let match = await database.query(`select * from Matches where username='${hostName}';`);
         let id = match.matchID;
         await database.query(`insert into Matches (matchID, username, seeker, host, active, found, radius) values ('${id}', '${username}', ${seeker}, ${0}, ${0}, ${0}, ${match.radius});`);
+        return await database.query(`select * from Matches where matchID="${id}";`);
     }
 
     /**

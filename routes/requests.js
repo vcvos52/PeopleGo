@@ -32,16 +32,17 @@ router.post('/join', async (req, res) => {
     let location = req.body.location;
     let latLong = {latitude: location.latitude, longitude: location.longitude};
     let seeker = req.body.seeker;
+    if (seeker === "1"){seeker = 1}
+    else {seeker = 0}
     let hostName = req.body.hostName;
     let username = req.session.name;
     if (!(await Requests.checkInMatch(latLong, hostName))){
         res.status(401).json("You need to be within the game radius to join").end();
         return;
     }
-    if (seeker){seek = 1;}
-    else {seek = 0;}
-    await Requests.makeJoinRequest(username, latLong, hostName, seek);
-    res.status(201).json("Success!").end();
+
+    let players = await Requests.makeJoinRequest(username, latLong, hostName, seeker);
+    res.status(201).json(players).end();
 });
 
 
