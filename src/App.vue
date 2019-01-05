@@ -77,6 +77,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import axios from "axios";
 import { socket } from "./main";
 import { async } from 'q';
+import io from 'socket.io-client';
+
 
 
 export default {
@@ -101,8 +103,8 @@ export default {
     // when sign in works, change HTML to load next part
     eventBus.$on("login-action", (username) => {
       this.logged = true;
-      console.log(username);
       this.username = username;
+      socket.connect();
     });
 
 
@@ -129,6 +131,8 @@ export default {
       .get("/api/users/isSigned")
       .then((username) => {
         this.logged = true;
+        console.log(username, username.data);
+        this.username = username.data;
       })
       .catch(res => {
         this.logged = false;
@@ -144,13 +148,12 @@ export default {
           eventBus.$emit("logout", username);
           this.setUp = false;
           document.getElementById("maparea").style.opacity = "1";
-        }).catch(() => {console.log("catch on logout")});
+          this.endMatch().then(() => {socket.disconnect()});
+          if (this.matchJoined){
+              this.leaveMatch();
+          }
+        })
 
-      if (this.matchInitialized){
-          this.endMatch();
-      } else if (this.matchJoined){
-          this.leaveMatch();
-      }
     }, 
 
     activateSetUp: function() {
@@ -167,11 +170,14 @@ export default {
     },
 
     endMatch: function(){
-      axios.delete(`api/requests/match/${this.username}`)
-        .then(() => {
-          socket.emit("match-deleted", {username: this.username});
-          this.matchInitialized = false
-        })
+      return new Promise((resolve, reject) => {
+        axios.delete(`api/requests/match/${this.username}`)
+          .then(() => {
+            socket.emit("match-deleted", {username: this.username});
+            this.matchInitialized = false;
+            resolve(true);
+          }).catch(() => {reject(true)});
+      });
     },
 
     leaveMatch: function(){

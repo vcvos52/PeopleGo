@@ -21,6 +21,11 @@ var io = require('socket.io')(http);
 // listen for incoming connections from client
 io.on('connection', function (socket) {
     console.log("Someone connected");
+
+    socket.on('disconnect', function(){
+        console.log("Someone Disconnected");
+    });
+
     // start listening for coords
     socket.on('coords', function (data) {
   
@@ -49,6 +54,7 @@ io.on('connection', function (socket) {
         io.emit('match-deleted', data)
     });
   });
+
 
 http.listen(PORT);
 

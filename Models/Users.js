@@ -101,19 +101,6 @@ class Users {
           }    
     }
 
-    /**
-     * Given a string that is a username, finds the associated freets
-     * @param {String} username 
-     */
-    static async findUserFreets(username){
-        try {
-            const sql = `SELECT * FROM freets WHERE author='${username}' OR refreeterID='${username}';`;
-            const response = await database.query('SELECT * FROM freets WHERE author=? OR refreeterID=?;', [username, username]);
-            return response;
-          } catch (error) {
-            throw error;
-          }    
-    }
         
 
     /**

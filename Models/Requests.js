@@ -69,6 +69,10 @@ class Requests {
         await database.query(`delete from Matches where username='${username}';`);
     }
 
+    static async getAllMatches(){
+        return await database.query(`select * from Matches where host=${1};`);
+    }
+
 }
 
 module.exports = Requests;

@@ -15,6 +15,9 @@ router.post('/create', async (req, res) => {
       res.status(401).json("please log out first").end();
       return;
   }
+  if (req.body.password.length < 4){
+      res.status(403).json("The password must be 4 characters or longer.")
+  }
   // let t = await Users.userExists(req.body.username.toString());
   if (await Users.userExists(req.body.username.toString())){
       res.status(403).json("this username is already taken").end();
@@ -109,7 +112,7 @@ router.get('/isSigned', (req, res)=> {
         res.status(401).json("You are not signed in").end();
         return;
     }
-    res.status(200).json("You are signed in").end();
+    res.status(200).json(req.session.name).end();
 });
 
 

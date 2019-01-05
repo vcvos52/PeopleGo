@@ -55,6 +55,13 @@ router.delete('/leave/:username', async (req, res) => {
     let username = req.params.username;
     await Requests.leaveMatch(username);
     res.status(201).json("success").end();
+});
+
+
+
+router.get('/getAllMatches', async (req, res) => {
+    let all = await Requests.getAllMatches();
+    res.status(200).json(all).end();
 })
 
 module.exports = router;
