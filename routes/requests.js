@@ -31,6 +31,8 @@ router.post('/host', async (req, res) => {
 router.post('/join', async (req, res) => {
     let location = req.body.location;
     let latLong = {latitude: location.latitude, longitude: location.longitude};
+    console.log("-------Joining! ", latLong);
+
     let seeker = req.body.seeker;
     if (seeker === "1"){seeker = 1}
     else {seeker = 0}
@@ -41,7 +43,7 @@ router.post('/join', async (req, res) => {
         return;
     }
 
-    let players = await Requests.makeJoinRequest(username, latLong, hostName, seeker);
+    let players = await Requests.makeJoinRequest(username, hostName, seeker);
     res.status(201).json(players).end();
 });
 

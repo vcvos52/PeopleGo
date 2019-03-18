@@ -133,9 +133,9 @@ export default {
     });
 
     eventBus.$on("ask-to-join", (data) => {
-      console.log("asking to join ", data);
       this.circleHost = data.title;
-      this.coords = data.coords;
+      let latlng = data.coords;
+      this.coords = {latitude: latlng.lat(), longitude: latlng.lng()};
       this.askToJoin = true;
     });
 
@@ -190,7 +190,7 @@ export default {
     },
 
     start: function(){
-
+      
     },
 
     endMatch: function(){

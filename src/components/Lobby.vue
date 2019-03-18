@@ -53,7 +53,7 @@ export default {
 
  mounted(){
         socket.on("coords", data => {
-            if (this.joinedMatch && !(data.name in this.keep)){
+            if (this.joinedMatch && !(this.keep.includes(data.name))){
                 return;
             }
             console.log("Socket on location update ", data.name);
@@ -85,7 +85,6 @@ export default {
         });
 
         socket.on('match-made', (data) => {
-            console.log("match made data: ", data);
             if (this.joinedMatch){return}
             if (data.username in this.markers && !(data.username in this.circles)){
                 let m = this.markers[data.username];
@@ -96,9 +95,8 @@ export default {
                     clickable: true,
                     center: m.getPosition()
                 });
-                console.log("DEBUG", m.getPosition(), m.getPosition());
                 google.maps.event.addListener(circle, 'click', function(){
-                    eventBus.$emit("ask-to-join", {title: m.getTitle(), coords: m.getPosition().coords});
+                    eventBus.$emit("ask-to-join", {title: m.getTitle(), coords: m.getPosition()});
                 });
                 console.log("Binding circle!!");
 
@@ -113,13 +111,17 @@ export default {
 
         let reference = this;
         socket.on('match-deleted', async function(data) {
-            console.log("circles upon match delete: ", reference.circles, reference.username);
+            // console.log("circles upon match delete: ", reference.circles, reference.username);
             if (reference.inMatch || reference.joinedMatch){
                 if (data.username === reference.activeMatchHost){
                     reference.inMatch = false;
                     reference.joinedMatch = false;
-                    await this.populateMapMarkers();
-                    await this.populateMapMatches();
+                    let c = reference.circles[data.username];
+                    c.setMap(null);
+                    delete ref.circles[data.username];
+
+                    await reference.populateMapMarkers();
+                    await reference.populateMapMatches();
                 }
             } else {
                 if (data.username in reference.circles){
@@ -132,8 +134,8 @@ export default {
 
         socket.on('match-left', (data) => {
             if (this.inMatch){
-                if (data.username in this.keep){
-                    let m = this.keep[data.username];
+                if (this.keep.includes(data.username)){
+                    let m = this.markers[data.username];
                     m.setMap(null);
 
                 }
@@ -142,7 +144,9 @@ export default {
 
         socket.on("match-joined", (data) => {
             if (data.host === this.activeMatchHost && !(data.newPlayer === this.username)){
-                this.keep.push(data.newPlayer);
+                if (!(this.keep.includes(data.newPlayer))){
+                    this.keep.push(data.newPlayer);
+                }
                 axios.get(`api/users/getLocation/${data.newPlayer}`).then(person => {
                     var newLatLong = new google.maps.LatLng(person.latitude, person.longitude);
                     var newMarker = new google.maps.Marker({
@@ -171,6 +175,7 @@ export default {
 
         // gets rid of all non match markers and circles
         eventBus.$on("match-joined", (players) => {
+            let ref  = this;
             for (var i = 0; i < players.length; i++){
                 let player = players[i];
                 this.keep.push(player.username);
@@ -179,17 +184,17 @@ export default {
                 }
             }
             Object.keys(this.markers).forEach(function(play) {
-                if (!(play in this.keep)){
-                    let m = this.markers[play];
+                if (!(ref.keep.includes(play))){
+                    let m = ref.markers[play];
                     m.setMap(null);
-                    delete this.markers[play];
+                    delete ref.markers[play];
                 }
             });
             Object.keys(this.circles).forEach(function(play) {
-                if (!(play === this.activeMatchHost)){
-                    let c = this.circles[play];
+                if (!(play === ref.activeMatchHost)){
+                    let c = ref.circles[play];
                     c.setMap(null);
-                    delete this.circles[play];
+                    delete ref.circles[play];
                 }
             });
             this.joinedMatch = true;
@@ -245,7 +250,7 @@ export default {
      populateMapMarkers: async function(){
          return await new Promise((resolve, reject) => {
              axios.get('api/users/getAllLocation').then(locations => {
-                console.log("Locations: ", locations.data)
+                // console.log("Locations: ", locations.data)
                 for (var i = 0; i < locations.data.length; i++){
                     let person = locations.data[i];
                     if (!(person.username in this.markers)){
@@ -266,7 +271,7 @@ export default {
      populateMapMatches: async function(){
         return await new Promise((resolve, reject) => {
             axios.get('api/requests/getAllMatches').then(matches => {
-                console.log("Matches: ", matches.data);
+                // console.log("Matches: ", matches.data);
                 for (var i = 0; i < matches.data.length; i++){
                     let match = matches.data[i];
                     let host = match.username;
@@ -279,10 +284,10 @@ export default {
                             radius: radius*1600,
                             fillColor: '#AA0000',
                             clickable: true,
-                            center: center
+                            center: center,
                         });
                         google.maps.event.addListener(circle, 'click', function(){
-                            eventBus.$emit("ask-to-join", {title: m.getTitle(), coords: center.coords});
+                            eventBus.$emit("ask-to-join", {title: m.getTitle(), coords: center});
                         });
                         this.circles[host] = circle;
                     }

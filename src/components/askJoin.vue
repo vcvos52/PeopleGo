@@ -67,6 +67,7 @@ export default {
      },
 
      join: async function(){
+         console.log("Joining! ", this.coords);
          // Join Match
         await axios.post('api/requests/join', {location: this.coords, hostName: this.host, seeker: this.role}).then((players) => {
             eventBus.$emit("cancel-ask", true);

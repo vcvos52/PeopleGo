@@ -29,8 +29,9 @@ class Requests {
      */
     static async makeJoinRequest(username, hostName, seeker){
         let match = await database.query(`select * from Matches where username='${hostName}';`);
-        let id = match.matchID;
-        await database.query(`insert into Matches (matchID, username, seeker, host, active, found, radius) values ('${id}', '${username}', ${seeker}, ${0}, ${0}, ${0}, ${match.radius});`);
+        let id = match[0].matchID;
+        console.log("Making join request: ", username, hostName, seeker, id);
+        await database.query(`insert into Matches (matchID, username, seeker, host, active, found, radius) values ('${id}', '${username}', ${seeker}, ${0}, ${0}, ${0}, ${match[0].radius});`);
         return await database.query(`select * from Matches where matchID="${id}";`);
     }
 
@@ -40,10 +41,13 @@ class Requests {
      * @param {String} hostName 
      */
     static async checkInMatch(latlong, hostName){
+        let match = await database.query(`select * from Matches where username='${hostName}' and host=${1};`);
         let matchlocation = await database.query(`select * from locations where username='${hostName}';`);
-        let matchPosition = {latitude: matchlocation.latitude, longitude: matchlocation.longitude}
+        let matchPosition = {latitude: matchlocation[0].latitude, longitude: matchlocation[0].longitude}
+        console.log("Checking in match", matchPosition, latlong, matchlocation);
         let distanceMatch = geolib.getDistance(matchPosition, latlong);
-        if (distanceMatch > radius){
+        console.log(distanceMatch, match[0].radius);
+        if (distanceMatch/1600 > match[0].radius){
             return false;
         } else {return true;}
     }
